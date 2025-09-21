@@ -1,8 +1,17 @@
 from fastapi import FastAPI,HTTPException,Body
 from pymongo import MongoClient
+from fastapi.middleware.cors import CORSMiddleware
 import pydanticModels as models
 
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"]
+)
 
 client = MongoClient("mongodb://localhost:27017/")
 
@@ -19,8 +28,6 @@ MODEL_COLLECTION_MAP = {
     "page_eight" : (models.PageEightModel,database["page_eight"]),
     "page_nine" : (models.PageNineModel,database["page_nine"])
 }
-
-
 
 @app.post("/create/{page_name}")
 def create_page_data(page_name : str , data: dict = Body(...)):
