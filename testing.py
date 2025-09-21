@@ -29,7 +29,7 @@ MODEL_COLLECTION_MAP = {
     "page_nine" : (models.PageNineModel,database["page_nine"])
 }
 
-@app.post("/{page_name}")
+@app.post("/create/{page_name}")
 def create_page_data(page_name: str, data: dict = Body(...)):
     if page_name not in MODEL_COLLECTION_MAP:
         raise HTTPException(status_code=400, detail="Invalid Page Name")
@@ -47,7 +47,7 @@ def create_page_data(page_name: str, data: dict = Body(...)):
     return {"inserted_data": str(result.inserted_id), "material": data["material"]}
 
 
-@app.get("/{page_number}")
+@app.get("/get/completedata/{page_number}")
 def get_documents(page_number : str):
     if page_number not in MODEL_COLLECTION_MAP:
         raise HTTPException(status_code=400,detail="Invalid Page Number")
@@ -61,27 +61,22 @@ def get_documents(page_number : str):
 @app.get("/generate/id/")
 def automatically_generate_id():
     collection = database["page_one"]
+    highest_id_document = collection.find_one(sort=[("id",-1)])
 
-    # Find documents where material is non-empty and numeric
-    numeric_docs = list(collection.find({
-        "material": {"$regex": "^[0-9]+$"}  # Only numeric strings
-    }).sort("material", -1))
-
-    if numeric_docs:
-        highest_id = int(numeric_docs[0]["material"])
+    if highest_id_document:
+        highest_id = highest_id_document["id"]
     else:
         highest_id = 0
-
     return highest_id + 1
 
-@app.put("/{page_name2}")
+@app.put("/update/pagenumber/{page_name2}")
 def update_document_partial(page_name2 : str , data : dict = Body(...)):
    if page_name2 not in MODEL_COLLECTION_MAP:
         raise HTTPException(status_code=400,detail="Invalid Page Number")
    model,collection = MODEL_COLLECTION_MAP[page_name2]
-   if "material" not in data:
+   if "id" not in data or "material" not in data:
         raise HTTPException(status_code=400, detail="'id' and 'material' are required to update")
-   filter_query = {"material" : data["material"]}
+   filter_query = {"id" : data["id"] , "material" : data["material"]}
    validated_data = model(**data).model_dump(exclude_unset = True)
    result = collection.update_one(filter_query,{"$set":validated_data})
 
