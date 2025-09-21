@@ -30,13 +30,22 @@ MODEL_COLLECTION_MAP = {
 }
 
 @app.post("/create/{page_name}")
-def create_page_data(page_name : str , data: dict = Body(...)):
+def create_page_data(page_name: str, data: dict = Body(...)):
     if page_name not in MODEL_COLLECTION_MAP:
-        raise HTTPException(status_code=400,detail="Invalid Page Name")
-    model,collection = MODEL_COLLECTION_MAP[page_name]
-    validated_data = model(**data).model_dump()
+        raise HTTPException(status_code=400, detail="Invalid Page Name")
+    
+    model, collection = MODEL_COLLECTION_MAP[page_name]
+
+    # If material not provided → auto-generate
+    if not data.get("material"):   # handles None, "" and missing key
+        new_material = automatically_generate_id()
+        data["material"] = str(new_material)
+
+    validated_data = model(**data).model_dump(exclude_unset=True, exclude_none=True)
     result = collection.insert_one(validated_data)
-    return {"inserted_data" : str(result)}
+    
+    return {"inserted_data": str(result.inserted_id), "material": data["material"]}
+
 
 @app.get("/get/completedata/{page_number}")
 def get_documents(page_number : str):
