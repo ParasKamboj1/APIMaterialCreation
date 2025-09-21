@@ -38,7 +38,7 @@ def create_page_data(page_name: str, data: dict = Body(...)):
 
     # If material not provided → auto-generate
     if not data.get("material"):   # handles None, "" and missing key
-        new_material = automatically_generate_id()
+        new_material = automatically_generate_id(page_name)
         data["material"] = str(new_material)
 
     validated_data = model(**data).model_dump(exclude_unset=True, exclude_none=True)

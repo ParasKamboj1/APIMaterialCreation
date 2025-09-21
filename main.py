@@ -38,7 +38,7 @@ def create_page_data(page_name: str, data: dict = Body(...)):
 
     # If material not provided → auto-generate
     if not data.get("material"):   # handles None, "" and missing key
-        new_material = automatically_generate_id()
+        new_material = automatically_generate_id(page_name)
         data["material"] = str(new_material)
 
     validated_data = model(**data).model_dump(exclude_unset=True, exclude_none=True)
@@ -59,7 +59,7 @@ def get_documents(page_number : str):
     return docs 
 
 @app.get("/generate/id/")
-def automatically_generate_id():
+def automatically_generate_id(page_name):
     collection = database["page_one"]
 
     # Find documents where material is non-empty and numeric
@@ -71,8 +71,11 @@ def automatically_generate_id():
         highest_id = int(numeric_docs[0]["material"])
     else:
         highest_id = 0
-
-    return highest_id + 1
+    
+    if page_name == "page_one":
+        return highest_id + 1
+    else:
+        return highest_id
 
 @app.put("/{page_name2}")
 def update_document_partial(page_name2 : str , data : dict = Body(...)):
