@@ -49,6 +49,17 @@ def get_documents(page_number : str):
         docs.append(d)
     return docs 
 
+@app.get("/generate/id/")
+def automatically_generate_id():
+    collection = database["page_one"]
+    highest_id_document = collection.find_one(sort=[("id",-1)])
+
+    if highest_id_document:
+        highest_id = highest_id_document["id"]
+    else:
+        highest_id = 0
+    return highest_id + 1
+
 @app.put("/update/pagenumber/{page_name2}")
 def update_document_partial(page_name2 : str , data : dict = Body(...)):
    if page_name2 not in MODEL_COLLECTION_MAP:
@@ -64,3 +75,4 @@ def update_document_partial(page_name2 : str , data : dict = Body(...)):
         raise HTTPException(status_code=404, detail="Document not found")
 
    return {"message": "Document updated successfully"}
+
