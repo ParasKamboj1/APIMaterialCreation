@@ -58,7 +58,7 @@ def get_documents(page_number : str):
         docs.append(d)
     return docs 
 
-@app.get("/generate/id/")
+@app.get("/generate/id/{page_name}")
 def automatically_generate_id(page_name):
     collection = database["page_one"]
 
